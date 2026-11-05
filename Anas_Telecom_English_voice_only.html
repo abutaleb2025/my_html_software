@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>সোনারগাঁ টেলিকম - MFS ও ডিজিটাল লেজার</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Hind Siliguri', sans-serif; background-color: #f1f5f9;} body{font-size:10px;}
+    .btn-action { transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease; -webkit-tap-highlight-color: transparent; }
+    .btn-action:active, button:active { background-color: #0f766e !important; border-color: #115e59 !important; color: #ffffff !important; transform: scale(0.97); box-shadow: 0 0 0 3px rgba(13,148,136,.28) !important; }
+    .btn-selected { border: 2px solid #0f766e !important; background-color: #0f766e !important; color: #ffffff !important; box-shadow: 0 0 0 3px rgba(13,148,136,.24), 0 4px 8px rgba(15,118,110,.22) !important; }
+
+    /* Dark charcoal styling for dashboard summary cards */
+    .analytics-summary-grid > div {
+      background: #343d47 !important;
+      border-top-color: #4b5563 !important;
+      border-right-color: #4b5563 !important;
+      border-bottom-color: #4b5563 !important;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .14) !important;
+    }
+    .analytics-summary-grid > div p.text-slate-500,
+    .analytics-summary-grid > div p.text-slate-700 {
+      color: #e2e8f0 !important;
+    }
+    .analytics-summary-grid > div p[id]:not(#totalInvest):not(#investProfit):not(#investProfitRemaining) {
+      color: #f8fafc !important;
+    }
+    .analytics-summary-grid > div p#totalInvest { color: #c084fc !important; }
+    .analytics-summary-grid > div p#investProfit { color: #34d399 !important; }
+    .analytics-summary-grid > div p#investProfitRemaining { color: #fbbf24 !important; }
+    .analytics-summary-grid > div .border-t { border-top-color: #64748b !important; }
+  </style>
+</head>
+<body class="text-slate-800 pb-20">
+
+  <!-- Header -->
+  <header class="bg-emerald-800 text-white p-3.5 shadow-md sticky top-0 z-20">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-base font-bold leading-tight">সোনারগাঁ টেলিকম</h1>
+        <p class="text-xs text-emerald-200">MFS ও ডিজিটাল লেজার (v16.1)</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="toggleCalc()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-sm px-3 py-1.5 rounded flex items-center gap-1 shadow">
+          🧮 ক্যালকুলেটর
+        </button>
+        <button onclick="resetData()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm px-3 py-1.5 rounded shadow">
+          🔄 রিসেট
+        </button>
+      </div>
+    </div>
+    <div class="max-w-md mx-auto mt-2 flex gap-2">
+      <button type="button" onclick="downloadBackup()" class="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-2 py-2 rounded border border-emerald-500">⬇️ ব্যাকআপ ডাউনলোড</button>
+      <button type="button" onclick="document.getElementById('backupFileInput').click()" class="flex-1 bg-sky-700 hover:bg-sky-600 text-white text-xs font-bold px-2 py-2 rounded border border-sky-500">⬆️ ব্যাকআপ ফিরিয়ে আনুন</button>
+      <input id="backupFileInput" type="file" accept=".json,application/json" class="hidden" onchange="restoreBackup(event)">
+    </div>
+    <p id="saveStatus" class="max-w-md mx-auto mt-1 text-[10px] text-emerald-200 text-right">ডেটা সংরক্ষণের প্রস্তুতি চলছে…</p>
+    <div class="max-w-md mx-auto mt-2 grid grid-cols-2 gap-2 sticky-quick-actions">
+      <button type="button" onclick="selectTxType('1', '১. ক্যাশ ইন')" id="btn-1" class="btn-action p-3 rounded-lg border-2 border-emerald-300 bg-emerald-500 hover:bg-emerald-400 text-white text-sm font-bold text-center shadow-md">📥 ক্যাশ ইন</button>
+      <button type="button" onclick="selectTxType('2', '২. ক্যাশ আউট')" id="btn-2" class="btn-action p-3 rounded-lg border-2 border-rose-300 bg-rose-500 hover:bg-rose-400 text-white text-sm font-bold text-center shadow-md">📤 ক্যাশ আউট</button>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-3 space-y-3.5">
+
+    <!-- Live Capital Summary -->
+    <div class="bg-slate-900 text-white p-4 rounded-xl shadow border border-slate-800 space-y-2">
+      <div class="flex justify-between items-center text-xs text-slate-400">
+        <span class="font-bold flex items-center gap-1">📻 লাইভ ক্যাশ মূলধন (হাতে নগদ ক্যাশ)</span>
+      </div>
+      <p id="liveCapital" class="text-2xl font-bold text-amber-400 mt-0.5">৳ 0</p>
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-xs text-slate-300">
+        <span>হাতে নগদ ক্যাশ: <span id="cashInHandSub" class="font-bold text-emerald-400">৳ 0</span></span>
+        <span>মোট MFS ব্যালেন্স: <span id="totalMfsBalanceSub" class="font-bold text-indigo-300">৳ 0</span></span>
+      </div>
+      <div class="pt-1">
+        <button onclick="setBalance('cash')" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded font-bold shadow flex items-center gap-1">
+          ✏️ সেট
+        </button>
+      </div>
+    </div>
+
+    <!-- MFS Balance Cards Grid (2x2) -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <div class="bg-pink-700 text-white p-3 rounded-xl shadow border border-pink-800">
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span>📱 বিকাশ ব্যালেন্স</span>
+        </div>
+        <p id="bkashBal" class="text-xl font-bold mt-1">৳ ০</p>
+        <button onclick="setBalance('bkash')" class="w-full mt-2 bg-pink-800/60 hover:bg-pink-800 text-white text-xs py-1.5 rounded border border-pink-500/30 font-bold">⚙️ বিকাশ সেট</button>
+      </div>
+
+      <div class="bg-amber-600 text-white p-3 rounded-xl shadow border border-amber-700">
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span>📱 নগদ ব্যালেন্স</span>
+        </div>
+        <p id="nagadBal" class="text-xl font-bold mt-1">৳ ০</p>
+        <button onclick="setBalance('nagad')" class="w-full mt-2 bg-amber-700/60 hover:bg-amber-700 text-white text-xs py-1.5 rounded border border-amber-400/30 font-bold">⚙️ নগদ সেট</button>
+      </div>
+
+      <div class="bg-purple-800 text-white p-3 rounded-xl shadow border border-purple-900">
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span>📱 রকেট ব্যালেন্স</span>
+        </div>
+        <p id="rocketBal" class="text-xl font-bold mt-1">৳ ০</p>
+        <button onclick="setBalance('rocket')" class="w-full mt-2 bg-purple-900/60 hover:bg-purple-900 text-white text-xs py-1.5 rounded border border-purple-500/30 font-bold">⚙️ রকেট সেট</button>
+      </div>
+
+      <div class="bg-emerald-700 text-white p-3 rounded-xl shadow border border-emerald-800">
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span>📱 উপায় ব্যালেন্স</span>
+        </div>
+        <p id="upayBal" class="text-xl font-bold mt-1">৳ ০</p>
+        <button onclick="setBalance('upay')" class="w-full mt-2 bg-emerald-800/60 hover:bg-emerald-800 text-white text-xs py-1.5 rounded border border-emerald-400/30 font-bold">⚙️ উপায় সেট</button>
+      </div>
+    </div>
+
+    <!-- Independent Home Expense Budget Box -->
+    <div id="homeBudgetCard" class="bg-gradient-to-r from-orange-900 to-amber-900 text-white p-3.5 rounded-xl border border-orange-700 space-y-2 shadow">
+      <div class="flex justify-between items-center text-sm font-bold border-b border-orange-700/60 pb-1.5 text-orange-200">
+        <span>🏠 সংসারের নিজস্ব খরচের বাজেট তহবিল</span>
+        <button onclick="setBalance('homeBudget')" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-2.5 py-1 rounded shadow">➕ বাজেট যোগ/সেট</button>
+      </div>
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-xs text-orange-200">অবশিষ্ট বাজেট স্থিতি</p>
+          <p id="homeBudgetBal" class="text-2xl font-bold text-amber-300">৳ ০</p>
+        </div>
+        <div class="text-right text-xs text-orange-200 space-y-0.5">
+          <p>মোট বরাদ্দ বাজেট: <span id="homeBudgetTotal" class="font-bold text-emerald-400">৳ ০</span></p>
+          <p>মোট সংসার খরচ: <span id="homeExpenseTotal" class="font-bold text-rose-300">৳ ০</span></p>
+          <p>👦 আনাসের খরচ: <span id="anasExpenseSub" class="font-bold text-amber-300">৳ ০</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Independent Personal Bank Account Card -->
+    <div class="bg-blue-900 text-white p-3.5 rounded-xl border border-blue-800 space-y-2 shadow">
+      <div class="flex justify-between items-center text-sm font-bold border-b border-blue-800 pb-1.5 text-sky-300">
+        <span>🏦 ব্যাংকের ব্যক্তিগত হিসাব (স্বতন্ত্র একক)</span>
+        <button onclick="setBalance('bank')" class="bg-blue-700 hover:bg-blue-600 text-white text-xs px-2.5 py-1 rounded">সরাসরি সেট</button>
+      </div>
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="text-xs text-blue-200">বর্তমান ব্যাংক স্থিতি</p>
+          <p id="bankBal" class="text-xl font-bold text-sky-400">৳ ০</p>
+        </div>
+        <div class="text-right text-xs text-blue-200 space-y-0.5">
+          <p>ব্যাংকে জমা (+): <span id="bankDepositTotal" class="font-bold text-emerald-400">৳ ০</span></p>
+          <p>ব্যাংক থেকে উত্তোলন (-): <span id="bankWithdrawTotal" class="font-bold text-rose-400">৳ ০</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Tracking Boxes -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <div class="bg-gradient-to-br from-rose-900 to-rose-950 text-white p-3.5 rounded-xl border border-rose-800 space-y-1.5 shadow">
+        <div class="border-b border-rose-800 pb-1 flex justify-between items-center">
+          <span class="text-xs font-bold text-rose-200">🤝 ব্যক্তিগত ধার হিসাব</span>
+        </div>
+        <p id="loanGivenBal" class="text-xl font-bold text-rose-300">৳ ০</p>
+        <div class="text-[11px] text-rose-200 space-y-0.5">
+          <p>কাউকে দেওয়া: <span id="loanGivenTotal" class="font-bold text-white">৳ ০</span></p>
+          <p>কারো থেকে নেওয়া: <span id="loanTakenTotal" class="font-bold text-amber-300">৳ ০</span></p>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-teal-900 to-emerald-950 text-white p-3.5 rounded-xl border border-teal-700 space-y-1.5 shadow">
+        <div class="border-b border-teal-700 pb-1 flex justify-between items-center">
+          <span class="text-xs font-bold text-teal-200">🤝 শর্ত সাপেক্ষে হাওলাঁদ</span>
+        </div>
+        <p id="hawladBal" class="text-xl font-bold text-teal-300">৳ ০</p>
+        <div class="text-[11px] text-teal-200 space-y-0.5">
+          <p>মোট হাওলাঁদ দেওয়া: <span id="hawladGivenTotal" class="font-bold text-white">৳ ০</span></p>
+          <p>ফেরত প্রাপ্তি: <span id="hawladRecTotal" class="font-bold text-emerald-300">৳ ০</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Institutional Bank / NGO Loan with Total Paid Box -->
+    <div class="bg-gradient-to-br from-purple-900 to-indigo-950 text-white p-3.5 rounded-xl border border-purple-800 space-y-1.5 shadow">
+      <div class="border-b border-purple-800 pb-1 flex justify-between items-center">
+        <span class="text-xs font-bold text-purple-200">🏢 প্রাতিষ্ঠানিক লোন ও কিস্তি</span>
+      </div>
+      <div>
+        <p class="text-[10px] text-purple-200">সর্বমোট পরিশোধিত কিস্তি:</p>
+        <p id="instLoanPaidBox" class="text-2xl font-bold text-emerald-400">৳ ০</p>
+      </div>
+      <div class="text-[11px] text-purple-200 space-y-0.5 border-t border-purple-800/80 pt-1 mt-1">
+        <p>মোট লোন গ্রহণ: <span id="instLoanTotal" class="font-bold text-white">৳ ০</span></p>
+        <p>অবশিষ্ট লোন বাকি: <span id="instLoanBal" class="font-bold text-rose-300">৳ ০</span></p>
+        <p>📅 সাপ্তাহিক কিস্তি: <span id="instWeeklyPaid" class="font-bold text-emerald-300">৳ ০</span></p>
+        <p>🗓️ মাসিক কিস্তি: <span id="instMonthlyPaid" class="font-bold text-amber-300">৳ ০</span></p>
+      </div>
+    </div>
+
+    <!-- Institutional / Bank / NGO Breakdown List Box -->
+    <div class="bg-white rounded-xl shadow border border-indigo-100 p-3.5 space-y-2">
+      <div class="flex justify-between items-center border-b pb-1.5">
+        <h3 class="text-xs font-bold text-indigo-900 uppercase">🏢 ব্যাংক ও এনজিও ভিত্তিক মোট কিস্তি পরিশোধ</h3>
+        <span id="instListCount" class="text-[11px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded">০ টি প্রতিষ্ঠান</span>
+      </div>
+      <div id="instBreakdownContainer" class="space-y-1.5 max-h-48 overflow-y-auto text-xs">
+        <p class="text-center text-slate-400 py-2">এখনো কোনো ব্যাংক বা এনজিওতে কিস্তি পরিশোধ করা হয়নি</p>
+      </div>
+    </div>
+
+    <!-- Manual Commission Addition Box -->
+    <div class="bg-amber-50 rounded-xl p-3.5 border border-amber-200 shadow-sm flex items-center justify-between gap-2">
+      <div class="flex-1">
+        <label class="block text-sm font-bold text-amber-900">➕ ম্যানুয়াল কমিশন যোগ করুন</label>
+        <input type="number" id="manualCommInput" placeholder="পরিমাণ (৳)" class="w-full p-2 mt-1 bg-white border rounded text-sm font-bold">
+      </div>
+      <button onclick="addManualCommission()" class="mt-5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm px-3.5 py-2 rounded shadow">
+        যোগ করুন
+      </button>
+    </div>
+
+    <!-- Analytics Summary Grid -->
+    <div class="analytics-summary-grid grid grid-cols-2 gap-2.5 text-sm">
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-teal-500">
+        <p class="text-slate-500 font-semibold text-xs">💸 ম্যানুয়াল কমিশন</p>
+        <p id="manualComm" class="text-lg font-bold text-slate-800 mt-0.5">৳ 0</p>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+        <p class="text-slate-500 font-semibold text-xs">💰 মোট কমিশন/লাভ (MFS+Rej+Elec)</p>
+        <p id="totalProfit" class="text-lg font-bold text-slate-800 mt-0.5">৳ 0</p>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-cyan-500">
+        <p class="text-slate-500 font-semibold text-xs">📈 আজকের নিট লাভ</p>
+        <p id="netProfit" class="text-lg font-bold text-slate-800 mt-0.5">৳ 0</p>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500 col-span-2">
+        <p class="text-slate-700 font-bold text-sm mb-2">💼 মোট বিনিয়োগ ও প্রাপ্ত লাভ</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <p class="text-slate-500 font-semibold text-xs">মোট বিনিয়োগ</p>
+            <p id="totalInvest" class="text-lg font-bold text-purple-700 mt-0.5">৳ 0</p>
+          </div>
+          <div>
+            <p class="text-slate-500 font-semibold text-xs">মোট প্রাপ্ত লভ্যাংশ</p>
+            <p id="investProfit" class="text-lg font-bold text-emerald-700 mt-0.5">৳ 0</p>
+          </div>
+          <div class="col-span-2 border-t border-purple-100 pt-2">
+            <p class="text-slate-500 font-semibold text-xs">খরচ বাদে অবশিষ্ট লভ্যাংশ</p>
+            <p id="investProfitRemaining" class="text-lg font-bold text-amber-700 mt-0.5">৳ 0</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
+        <p class="text-slate-500 font-semibold text-xs">🤝 নিট পাওনা-দেনা পার্থক্য</p>
+        <p id="netLoan" class="text-lg font-bold text-slate-800 mt-0.5">৳ 0</p>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+        <p class="text-slate-500 font-semibold text-xs">🏠 মোট সংসার খরচ</p>
+        <p id="homeExpense" class="text-lg font-bold text-slate-800 mt-0.5">৳ 0</p>
+      </div>
+      <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
+        <p class="text-slate-500 font-semibold text-xs">🏪 মোট দোকান খরচ</p>
+        <p id="shopExpense" class="text-lg font-bold text-slate-800 mt-0.5">৳ 0</p>
+      </div>
+    </div>
+
+    <!-- Dashboard Buttons Grid -->
+    <div class="bg-white rounded-xl shadow-md border border-slate-200 p-3.5 space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">⚡ লেনদেনের ধরণ বেছে নিন</h2>
+        <span id="selectedLabel" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">১. ক্যাশ ইন</span>
+      </div>
+
+      <!-- Transaction buttons (renumbered 1 to 18) -->
+      <div class="grid grid-cols-2 gap-2.5 text-sm font-bold">
+
+
+        <button type="button" onclick="selectTxType('3', '১. মোবাইল রিচার্জ')" id="btn-3" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>১. মোবাইল রিচার্জ</span>
+          <span class="text-amber-600 text-base">📱</span>
+        </button>
+        <button type="button" onclick="selectTxType('4', '২. লোন কিস্তি পরিশোধ')" id="btn-4" class="btn-action p-3 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-900 text-left flex items-center justify-between">
+          <span>২. লোন কিস্তি পরিশোধ</span>
+          <span class="text-indigo-600 text-base">🏦🏢</span>
+        </button>
+        <button type="button" onclick="selectTxType('5', '৩. ব্যাংক ➔ MFS')" id="btn-5" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৩. ব্যাংক ➔ MFS</span>
+          <span class="text-cyan-600 text-base">🏦</span>
+        </button>
+        <button type="button" onclick="selectTxType('6', '৪. MFS ➔ ব্যাংক')" id="btn-6" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৪. MFS ➔ ব্যাংক</span>
+          <span class="text-indigo-600 text-base">🏦</span>
+        </button>
+        <button type="button" onclick="selectTxType('7', '৫. বিনিয়োগ ও লভ্যাংশ')" id="btn-7" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৫. বিনিয়োগ ও লভ্যাংশ</span>
+          <span class="text-emerald-700 text-base">💼💰</span>
+        </button>
+        <button type="button" onclick="selectTxType('8', '৬. ব্যাংকে টাকা জমা')" id="btn-8" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৬. ব্যাংকে টাকা জমা</span>
+          <span class="text-sky-600 text-base">📥🏦</span>
+        </button>
+        <button type="button" onclick="selectTxType('9', '৭. ব্যাংক থেকে উত্তোলন (নগদ ক্যাশ বক্সে জমা)')" id="btn-9" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৭. ব্যাংক থেকে উত্তোলন <small class="block text-[10px] font-normal opacity-80">টাকা নগদ ক্যাশ বক্সে জমা হবে</small></span>
+          <span class="text-sky-700 text-base">📤🏦</span>
+        </button>
+        <button type="button" onclick="selectTxType('10', '৮. কাউকে ধার দেওয়া')" id="btn-10" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৮. কাউকে ধার দেওয়া</span>
+          <span class="text-rose-600 text-base">🤝📤</span>
+        </button>
+        <button type="button" onclick="selectTxType('11', '৯. দেওয়া ধার ফেরত')" id="btn-11" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>৯. দেওয়া ধার ফেরত</span>
+          <span class="text-emerald-600 text-base">🤝📥</span>
+        </button>
+        <button type="button" onclick="selectTxType('12', '১০. দোকানের খরচ')" id="btn-12" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>১০. দোকানের খরচ</span>
+          <span class="text-rose-700 text-base">🏪</span>
+        </button>
+        <button type="button" onclick="selectTxType('13', '১১. সংসারের খরচ')" id="btn-13" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>১১. সংসারের খরচ</span>
+          <span class="text-orange-600 text-base">🏠</span>
+        </button>
+        <button type="button" onclick="selectTxType('14', '১২. বিদ্যুৎ বিল পরিশোধ')" id="btn-14" class="btn-action p-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 text-left flex items-center justify-between">
+          <span>১২. বিদ্যুৎ বিল পরিশোধ</span>
+          <span class="text-yellow-600 text-base">💡</span>
+        </button>
+        <button type="button" onclick="selectTxType('15', '১৩. ব্যক্তিগত ধার নেওয়া')" id="btn-15" class="btn-action p-3 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 text-left flex items-center justify-between">
+          <span>১৩. ব্যক্তিগত ধার নেওয়া</span>
+          <span class="text-purple-700 text-base">💳📥</span>
+        </button>
+
+        <button type="button" onclick="selectTxType('17', '১৪. প্রাতিষ্ঠানিক লোন গ্রহণ')" id="btn-17" class="btn-action p-3 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-900 text-left flex items-center justify-between">
+          <span>১৪. প্রাতিষ্ঠানিক লোন</span>
+          <span class="text-indigo-700 text-base">🏛️📥</span>
+        </button>
+        <button type="button" onclick="selectTxType('18', '১৫. শর্ত সাপেক্ষে হাওলাঁদ')" id="btn-18" class="btn-action p-3 rounded-lg border border-teal-200 bg-teal-50 text-teal-900 text-left flex items-center justify-between">
+          <span>১৫. শর্ত হাওলাঁদ</span>
+          <span class="text-teal-700 text-base">🤝💸</span>
+        </button>
+        <button type="button" onclick="selectTxType('19', '১৬. হাওলাঁদ ফেরত')" id="btn-19" class="btn-action p-3 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-left flex items-center justify-between">
+          <span>১৬. হাওলাঁদ ফেরত</span>
+          <span class="text-emerald-700 text-base">🤝💵</span>
+        </button>
+        <button type="button" onclick="selectTxType('20', '১৭. আনাসের খরচ')" id="btn-20" class="btn-action p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-900 text-left flex items-center justify-between">
+          <span>১৭. আনাসের খরচ</span>
+          <span class="text-orange-700 text-base">👦👶</span>
+        </button>
+      </div>
+
+      <!-- Input Form -->
+      <form id="txForm" onsubmit="submitTransaction(event)" class="space-y-3 pt-3 border-t">
+        <input type="hidden" id="editingTxId" value="">
+        <input type="hidden" id="selectedTxType" value="1">
+
+        <div class="flex justify-between items-center bg-blue-50 p-2.5 rounded-lg border border-blue-100 text-sm">
+          <div class="font-bold text-blue-900">
+            📅 তারিখ: <input type="date" id="txDate" class="bg-white border rounded px-1.5 py-1 text-sm font-bold">
+          </div>
+          <button type="button" onclick="setDateToday()" class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1.5 rounded shadow">
+            আজকের তারিখ
+          </button>
+        </div>
+
+        <!-- Wallet / Source Selection -->
+        <div id="serviceDiv">
+          <label class="block text-sm font-bold text-slate-700 mb-1" id="serviceLabel">MFS সেবা / ওয়ালেট সিলেক্ট করুন</label>
+          <select id="mfsService" class="w-full p-2.5 bg-slate-50 border rounded-lg font-bold text-sm focus:ring-2 focus:ring-emerald-600">
+            <option value="bkash">বিকাশ (bKash)</option>
+            <option value="nagad">নগদ (Nagad)</option>
+            <option value="rocket">রকেট (Rocket)</option>
+            <option value="upay">উপায় (Upay)</option>
+            <option value="bank">ব্যক্তিগত ব্যাংক হিসাব (Bank)</option>
+            <option value="cash">নগদ ক্যাশ বাক্স</option>
+          </select>
+        </div>
+
+        <div class="bg-emerald-50/50 p-3 rounded-lg border border-emerald-200 space-y-2.5">
+          <p id="formTitle" class="text-sm font-bold text-emerald-900 border-b border-emerald-200 pb-1.5">নতুন লেনদেনের তথ্য ও পরিমাণ</p>
+
+          <!-- Standard Amount & Commission Grid -->
+          <div id="standardAmountGrid" class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700">মূল অংক (৳)</label>
+              <input type="number" id="mainAmount" placeholder="" onfocus="this.select()" class="w-full p-2.5 bg-white border rounded-lg font-bold text-base focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div id="commBoxWrapper">
+              <label class="block text-xs font-bold text-emerald-700">কমিশন/লাভ (৳)</label>
+              <input type="number" id="commAmount" placeholder="" onfocus="this.select()" class="w-full p-2.5 bg-white border rounded-lg font-bold text-base text-emerald-600 focus:ring-2 focus:ring-emerald-500">
+            </div>
+          </div>
+
+          <!-- Special Inputs for Option 4: Installment Options -->
+          <div id="instInstallmentGrid" class="hidden space-y-2.5">
+            <div>
+              <label class="block text-xs font-bold text-indigo-900">ব্যাংক বা এনজিওর নাম <span class="text-rose-600">*</span></label>
+              <div class="flex gap-2">
+                <input type="text" id="instNameInput" placeholder="যেমন: ব্র্যাক ব্যাংক / গ্রামীণ ব্যাংক / আশা" class="w-full p-2.5 bg-white border border-indigo-300 rounded-lg font-bold text-sm focus:ring-2 focus:ring-indigo-500">
+                <select id="instDropdown" onchange="if(this.value) { document.getElementById('instNameInput').value = this.value; this.value=''; }" class="p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs font-bold text-indigo-900">
+                  <option value="">📌 তালিকা থেকে বাছুন</option>
+                  <option value="ব্র্যাক ব্যাংক (BRAC)">ব্র্যাক ব্যাংক (BRAC)</option>
+                  <option value="গ্রামীণ ব্যাংক">গ্রামীণ ব্যাংক</option>
+                  <option value="আশা (ASA)">আশা (ASA)</option>
+                  <option value="প্রাশিকা">প্রাশিকা</option>
+                  <option value="ব্যুরো বাংলাদেশ">ব্যুরো বাংলাদেশ</option>
+                  <option value="সোশ্যাল ইসলামী ব্যাংক">সোশ্যাল ইসলামী ব্যাংক</option>
+                </select>
+              </div>
+              <div class="flex flex-wrap gap-1.5 pt-1.5">
+                <button type="button" onclick="document.getElementById('instNameInput').value='ব্র্যাক ব্যাংক (BRAC)'" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold px-2 py-0.5 rounded border border-indigo-300">✓ ব্র্যাক</button>
+                <button type="button" onclick="document.getElementById('instNameInput').value='গ্রামীণ ব্যাংক'" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold px-2 py-0.5 rounded border border-indigo-300">✓ গ্রামীণ</button>
+                <button type="button" onclick="document.getElementById('instNameInput').value='আশা (ASA)'" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold px-2 py-0.5 rounded border border-indigo-300">✓ আশা</button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-indigo-900">কিস্তির সময়কাল / ধরণ</label>
+              <select id="installmentFreq" class="w-full p-2.5 bg-white border border-indigo-300 rounded-lg font-bold text-sm text-indigo-950">
+                <option value="weekly">📅 সাপ্তাহিক কিস্তি (Weekly)</option>
+                <option value="monthly">🗓️ মাসিক কিস্তি (Monthly)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Special Inputs for Option 3: Mobile Recharge -->
+          <div id="rechargeGrid" class="hidden grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-amber-800">অপারেটর</label>
+              <select id="operatorName" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+                <option value="Grameenphone">গ্রামীণফোন (GP)</option>
+                <option value="Robi">রবি (Robi)</option>
+                <option value="Banglalink">বাংলালিংক (BL)</option>
+                <option value="Teletalk">টেলটক (Teletalk)</option>
+                <option value="Airtel">এয়ারটেল (Airtel)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-amber-800">মোবাইল নম্বর</label>
+              <input type="text" id="rechargeNumber" placeholder="০১XXXXXXXXX" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+            </div>
+          </div>
+
+          <!-- Special Inputs for Option 7: Investment & Profit -->
+          <div id="investmentGrid" class="hidden space-y-2.5">
+            <div>
+              <label class="block text-xs font-bold text-purple-800">কাকে বিনিয়োগ করা হলো / নাম</label>
+              <input type="text" id="investorName" placeholder="ব্যক্তি বা প্রতিষ্ঠানের নাম" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs font-bold text-purple-800">বিনিয়োগ প্রদান (৳)</label>
+                <input type="number" id="investAmount" placeholder="" onfocus="this.select()" class="w-full p-2.5 bg-white border rounded-lg font-bold text-base text-purple-900">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-emerald-800">লভ্যাংশ প্রাপ্তি (৳)</label>
+                <input type="number" id="profitAmount" placeholder="" onfocus="this.select()" class="w-full p-2.5 bg-white border rounded-lg font-bold text-base text-emerald-900">
+              </div>
+            </div>
+          </div>
+
+          <!-- Special Inputs for Options 8 & 9 -->
+          <div id="bankPersonGrid" class="hidden">
+            <label class="block text-xs font-bold text-sky-800" id="bankPersonLabel">ব্যক্তির নাম (কে জমা/উত্তোল করল)</label>
+            <input type="text" id="personName" placeholder="নাম লিখুন" list="personList" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+          </div>
+
+          <!-- Loan & Hawlad Inputs -->
+          <div id="loanGrid" class="hidden space-y-2">
+            <div>
+              <label class="block text-xs font-bold text-rose-800" id="loanLabel">ব্যক্তি/প্রতিষ্ঠানের নাম</label>
+              <input type="text" id="loanPersonName" placeholder="নাম লিখুন" list="loanPersonList" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+            </div>
+            <div id="loanSourceDiv">
+              <label class="block text-xs font-bold text-rose-800" id="loanSourceLabel">টাকার মাধ্যম / খাত</label>
+              <select id="loanSource" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+                <option value="none">শুধু ঋণ বক্সে সীমাবদ্ধ (অন্য কোথাও প্রভাব ফেলবে না)</option>
+                <option value="cash">হাতে নগদ ক্যাশ বাক্স</option>
+                <option value="bkash">বিকাশ (bKash)</option>
+                <option value="nagad">নগদ (Nagad)</option>
+                <option value="rocket">রকেট (Rocket)</option>
+                <option value="upay">উপায় (Upay)</option>
+                <option value="bank">ব্যক্তিগত ব্যাংক হিসাব (Bank)</option>
+                <option value="budget">সংসারের বাজেট তহবিল</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Special Inputs for Option 13 & 20 -->
+          <div id="homeExpenseGrid" class="hidden space-y-2">
+            <label class="block text-xs font-bold text-orange-800" id="purchaseItemLabel">সংসারে কী জিনিস ক্রয় করা হলো?</label>
+            <div class="flex gap-2">
+              <input type="text" id="purchaseItem" placeholder="বাজার বা ক্রয়ের বিবরণ" class="w-full p-2.5 bg-white border rounded-lg font-bold text-sm">
+              <select id="quickSelectDropdown" onchange="applyQuickSelect(this.value)" class="p-2 bg-slate-100 border rounded-lg text-xs font-bold text-slate-700">
+                <option value="">📌 তালিকা থেকে বাছুন</option>
+              </select>
+            </div>
+            <div id="quickChipsContainer" class="flex flex-wrap gap-1.5 pt-1"></div>
+          </div>
+
+          <!-- General Note -->
+          <div id="noteDiv">
+            <label class="block text-xs font-bold text-slate-700">বিবরণ / নোট / গ্রাহক নম্বর</label>
+            <input type="text" id="note" placeholder="ঐচ্ছিক নোট" list="noteList" class="w-full p-2.5 bg-white border rounded-lg text-sm">
+          </div>
+        </div>
+
+        <div class="flex gap-2.5">
+          <button type="submit" id="submitBtn" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-lg shadow-md text-base transition">
+            💾 লেনদেন সংরক্ষণ করুন
+          </button>
+          <button type="button" id="cancelEditBtn" onclick="cancelEdit()" class="hidden bg-slate-500 hover:bg-slate-600 text-white font-bold px-4 py-3 rounded-lg text-sm">
+            বাতিল
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+    <!-- History with Edit & Delete Options -->
+    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+      <div class="p-3 bg-slate-100 border-b flex justify-between items-center text-sm font-bold">
+        <span class="text-slate-700">আজকের সাম্প্রতিক হিসাব খাতা</span>
+        <span id="historyCount" class="bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full text-xs">০ টি এন্ট্রি</span>
+      </div>
+      <div id="txHistory" class="divide-y divide-slate-100 max-h-80 overflow-y-auto text-sm">
+        <p class="p-4 text-center text-slate-400 text-sm">এখনো কোনো এন্ট্রি যোগ করা হয়নি</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Calculator Popup -->
+  <div id="calcModal" class="fixed inset-0 bg-slate-900/60 hidden backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 text-white rounded-2xl p-4 w-68 shadow-2xl space-y-3 border border-slate-700">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+        <span class="text-sm font-bold text-amber-400">🧮 ক্যালকুলেটর</span>
+        <button onclick="toggleCalc()" class="text-slate-400 text-xl font-bold">&times;</button>
+      </div>
+      <input type="text" id="calcDisplay" readonly value="0" class="w-full p-2.5 bg-slate-800 text-right font-mono text-2xl font-bold rounded border border-slate-700 text-emerald-400">
+      <div class="grid grid-cols-4 gap-2 text-base font-bold text-center">
+        <button onclick="calcInput('C')" class="p-2.5 bg-rose-600 rounded text-white">C</button>
+        <button onclick="calcInput('/')" class="p-2.5 bg-slate-700 rounded text-amber-300">/</button>
+        <button onclick="calcInput('*')" class="p-2.5 bg-slate-700 rounded text-amber-300">*</button>
+        <button onclick="calcInput('-')" class="p-2.5 bg-slate-700 rounded text-amber-300">-</button>
+
+        <button onclick="calcInput('7')" class="p-2.5 bg-slate-800 rounded">7</button>
+        <button onclick="calcInput('8')" class="p-2.5 bg-slate-800 rounded">8</button>
+        <button onclick="calcInput('9')" class="p-2.5 bg-slate-800 rounded">9</button>
+        <button onclick="calcInput('+')" class="p-2.5 bg-slate-700 rounded text-amber-300">+</button>
+
+        <button onclick="calcInput('4')" class="p-2.5 bg-slate-800 rounded">4</button>
+        <button onclick="calcInput('5')" class="p-2.5 bg-slate-800 rounded">5</button>
+        <button onclick="calcInput('6')" class="p-2.5 bg-slate-800 rounded">6</button>
+        <button onclick="calcInput('0')" class="p-2.5 bg-slate-800 rounded">0</button>
+
+        <button onclick="calcInput('1')" class="p-2.5 bg-slate-800 rounded">1</button>
+        <button onclick="calcInput('2')" class="p-2.5 bg-slate-800 rounded">2</button>
+        <button onclick="calcInput('3')" class="p-2.5 bg-slate-800 rounded">3</button>
+        <button onclick="calcEqual()" class="p-2.5 bg-emerald-600 rounded text-white font-bold">=</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaultState = {
+      cash: 0, bkash: 0, nagad: 0, rocket: 0, upay: 0, bank: 0,
+      homeBudgetTotal: 0, homeBudgetBal: 0, homeExpenseTotal: 0, anasExpenseTotal: 0,
+      manualComm: 0, totalProfit: 0, investTotal: 0, investProfit: 0,
+      shopExpense: 0, electricityExpense: 0,
+      loanGivenTotal: 0, loanGivenRec: 0,
+      loanTakenTotal: 0, loanTakenPaid: 0,
+      hawladGivenTotal: 0, hawladRecTotal: 0,
+      instLoanTotal: 0, instLoanPaid: 0,
+      instWeeklyPaid: 0, instMonthlyPaid: 0,
+      bankDepositTotal: 0, bankWithdrawTotal: 0, history: []
+    };
+    const STORAGE_KEY = 'st_app_state_v16_1';
+    const STORAGE_TIME_KEY = 'st_app_state_v16_1_saved_at';
+    const BACKUP_DB_NAME = 'sonargaon_telecom_backup';
+    const BACKUP_DB_STORE = 'appdata';
+
+    function readLocalState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { state: { ...defaultState }, savedAt: 0 };
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') throw new Error('Invalid saved data');
+        return {
+          state: { ...defaultState, ...parsed, history: Array.isArray(parsed.history) ? parsed.history : [] },
+          savedAt: Number(localStorage.getItem(STORAGE_TIME_KEY) || 0)
+        };
+      } catch (err) {
+        console.error('Local save read error:', err);
+        return { state: { ...defaultState }, savedAt: 0 };
+      }
+    }
+
+    let state = readLocalState().state;
+
+    function openBackupDB() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) return reject(new Error('IndexedDB unsupported'));
+        const request = indexedDB.open(BACKUP_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(BACKUP_DB_STORE)) db.createObjectStore(BACKUP_DB_STORE);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('Database open failed'));
+      });
+    }
+
+    async function saveToBackupDB(snapshot) {
+      const db = await openBackupDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(BACKUP_DB_STORE, 'readwrite');
+        tx.objectStore(BACKUP_DB_STORE).put(snapshot, 'latest');
+        tx.oncomplete = () => { db.close(); resolve(true); };
+        tx.onerror = tx.onabort = () => { db.close(); reject(tx.error || new Error('Database save failed')); };
+      });
+    }
+
+    async function readFromBackupDB() {
+      const db = await openBackupDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(BACKUP_DB_STORE, 'readonly');
+        const request = tx.objectStore(BACKUP_DB_STORE).get('latest');
+        request.onsuccess = () => { db.close(); resolve(request.result || null); };
+        request.onerror = () => { db.close(); reject(request.error || new Error('Database read failed')); };
+      });
+    }
+
+    function setSaveStatus(message, isError = false) {
+      const el = document.getElementById('saveStatus');
+      if (el) {
+        el.textContent = message;
+        el.className = `max-w-md mx-auto mt-1 text-[10px] text-right ${isError ? 'text-amber-200' : 'text-emerald-200'}`;
+      }
+    }
+
+    function persistLocalState(savedAt) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_TIME_KEY, String(savedAt));
+    }
+
+    function saveState() {
+      const savedAt = Date.now();
+      let localSaved = false;
+      try {
+        persistLocalState(savedAt);
+        localSaved = true;
+      } catch (err) {
+        console.error('Local storage save error:', err);
+      }
+      const snapshot = { state: JSON.parse(JSON.stringify(state)), savedAt };
+      saveToBackupDB(snapshot).then(() => {
+        setSaveStatus('✓ এই ব্রাউজারে ডেটা সংরক্ষিত (লোকাল + নিরাপদ স্টোরেজ)');
+      }).catch(err => {
+        console.error('IndexedDB save error:', err);
+        setSaveStatus(localSaved ? '✓ ডেটা এই ব্রাউজারে সংরক্ষিত' : '⚠️ ডেটা সংরক্ষণ হয়নি—এখনই ব্যাকআপ ডাউনলোড করুন', !localSaved);
+      });
+      if (localSaved) setSaveStatus('ডেটা সংরক্ষণ হচ্ছে…');
+      render();
+    }
+
+    async function initializeStorage() {
+      const local = readLocalState();
+      state = local.state;
+      try {
+        const backup = await readFromBackupDB();
+        if (backup && backup.state && typeof backup.state === 'object' && Number(backup.savedAt || 0) > local.savedAt) {
+          state = { ...defaultState, ...backup.state, history: Array.isArray(backup.state.history) ? backup.state.history : [] };
+          persistLocalState(Number(backup.savedAt));
+          setSaveStatus('✓ আগের সংরক্ষিত ব্যাকআপ থেকে ডেটা ফিরিয়ে আনা হয়েছে');
+        } else {
+          setSaveStatus('✓ ডেটা এই ব্রাউজারে সংরক্ষিত');
+          // Seed IndexedDB from the existing localStorage data for old installations.
+          if (local.savedAt === 0 && (localStorage.getItem(STORAGE_KEY))) {
+            await saveToBackupDB({ state: JSON.parse(JSON.stringify(state)), savedAt: Date.now() });
+            localStorage.setItem(STORAGE_TIME_KEY, String(Date.now()));
+          }
+        }
+      } catch (err) {
+        console.warn('Backup storage unavailable:', err);
+        setSaveStatus('এই ব্রাউজারে সাধারণ সেভ চালু আছে; ব্যাকআপ ডাউনলোড করে রাখুন', true);
+      }
+      setDateToday();
+      render();
+    }
+
+    function downloadBackup() {
+      try {
+        const payload = {
+          app: 'Sonar Gaon Telecom',
+          version: 'v16.1',
+          exportedAt: new Date().toISOString(),
+          state: state
+        };
+        const jsonString = JSON.stringify(payload, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+        const fileName = `sonargaon-telecom-backup-${new Date().toISOString().slice(0,10)}.json`;
+
+        // Android APK / WebView Web Share API support
+        if (navigator.canShare && navigator.canShare()) {
+          const file = new File([blob], fileName, { type: 'application/json' });
+          if (navigator.canShare({ files: [file] })) {
+            navigator.share({
+              title: 'সোনারগাঁ টেলিকম ব্যাকআপ',
+              text: 'আপনার হিসাবের ব্যাকআপ ফাইল',
+              files: [file]
+            }).then(() => {
+              setSaveStatus('✓ ব্যাকআপ সফলভাবে শেয়ার করা হয়েছে');
+            }).catch(err => {
+              console.log('Share dismissed or failed:', err);
+            });
+            return;
+          }
+        }
+
+        // Fallback download method for WebView/Browser
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+        setSaveStatus('✓ ব্যাকআপ ফাইল ডাউনলোড বা সেভ হয়েছে');
+      } catch (err) {
+        console.error('Download error:', err);
+        setSaveStatus('⚠️ ব্যাকআপ তৈরি করতে সমস্যা হয়েছে', true);
+      }
+    }
+
+    function restoreBackup(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const incoming = parsed && parsed.state ? parsed.state : parsed;
+          if (!incoming || typeof incoming !== 'object' || !Array.isArray(incoming.history)) {
+            throw new Error('Invalid backup format');
+          }
+          if (!confirm('ব্যাকআপের তথ্য দিয়ে বর্তমান হিসাব প্রতিস্থাপন করবেন? আগে বর্তমান হিসাবের ব্যাকআপ ডাউনলোড করে রাখুন।')) return;
+          state = { ...defaultState, ...incoming, history: incoming.history };
+          saveState();
+          setSaveStatus('✓ ব্যাকআপের হিসাব ফিরিয়ে আনা হয়েছে');
+          alert('ব্যাকআপ সফলভাবে ফিরিয়ে আনা হয়েছে।');
+        } catch (err) {
+          console.error(err);
+          alert('ব্যাকআপ ফাইলটি সঠিক নয় বা পড়া যাচ্ছে না।');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    const typeLabels = {
+      '1': 'ক্যাশ ইন', '2': 'ক্যাশ আউট', '3': 'মোবাইল রিচার্জ', '4': 'লোন কিস্তি পরিশোধ',
+      '5': 'ব্যাংক ➔ MFS', '6': 'MFS ➔ ব্যাংক', '7': 'বিনিয়োগ ও লভ্যাংশ',
+      '8': 'ব্যাংকে টাকা জমা', '9': 'ব্যাংক থেকে উত্তোলন', 
+      '10': 'কাউকে ধার দেওয়া', '11': 'দেওয়া ধার ফেরত প্রাপ্তি',
+      '15': 'ব্যক্তিগত ধার নেওয়া', '17': 'প্রাতিষ্ঠানিক লোন গ্রহণ',
+      '18': 'শর্ত সাপেক্ষে হাওলাঁদ প্রদান', '19': 'শর্ত সাপেক্ষে হাওলাঁদ ফেরত',
+      '12': 'দোকানের খরচ', '13': 'সংসার খরচ', '20': 'আনাসের খরচ', '14': 'বিদ্যুৎ বিল পরিশোধ', '16': 'আনাসের মোট খরচ'
+    };
+
+    function saveState() {
+      localStorage.setItem('st_app_state_v16_1', JSON.stringify(state));
+      render();
+    }
+
+    function setBalance(type) {
+      if (type === 'homeBudget') {
+        const val = prompt(`সংসার খরচের নতুন বাজেট তহবিল যোগ/সেট করুন (৳):
+(বর্তমান অবশিষ্ট: ৳ ${state.homeBudgetBal})`, '');
+        if (val !== null && val.trim() !== '' && !isNaN(parseFloat(val))) {
+          const newBudget = parseFloat(val);
+          state.homeBudgetTotal = newBudget + (state.homeExpenseTotal || 0);
+          state.homeBudgetBal = newBudget;
+          saveState();
+        }
+        return;
+      }
+
+      const names = { cash: 'লাইভ ক্যাশ মূলধন (হাতে নগদ ক্যাশ)', bkash: 'বিকাশ', nagad: 'নগদ', rocket: 'রকেট', upay: 'উপায়', bank: 'ব্যক্তিগত ব্যাংক হিসাব' };
+      const val = prompt(`${names[type]} এর নতুন ব্যালেন্স দিন (৳):`, '');
+      if (val !== null && val.trim() !== '' && !isNaN(parseFloat(val))) {
+        state[type] = parseFloat(val);
+        saveState();
+      }
+    }
+
+    function addManualCommission() {
+      const input = document.getElementById('manualCommInput');
+      const val = parseFloat(input.value) || 0;
+      if (val > 0) {
+        state.manualComm += val;
+        state.totalProfit += val;
+        state.cash += val; 
+        input.value = '';
+        saveState();
+        alert(`৳ ${val} ম্যানুয়াল কমিশন সফলভাবে ক্যাশ বাক্সে যোগ হয়েছে!`);
+      }
+    }
+
+    function resetData() {
+      if (confirm('সতর্কতা ১/২: আপনি কি নিশ্চিতভাবে সমস্ত তথ্য ও হিসাব রিসেট করতে চান? এই কাজের ফলে সংরক্ষিত ডেটা মুছে যাবে।')) {
+        if (!confirm('সতর্কতা ২/২: শেষবার নিশ্চিত করুন—সব লেনদেন ও হিসাব স্থায়ীভাবে মুছে ফেলবেন?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_TIME_KEY);
+        if ('indexedDB' in window) indexedDB.deleteDatabase(BACKUP_DB_NAME);
+        location.reload();
+      }
+    }
+
+    function setDateToday() {
+      const now = new Date();
+      document.getElementById('txDate').value = now.toISOString().split('T')[0];
+    }
+
+    function selectTxType(val, label) {
+      document.getElementById('selectedTxType').value = val;
+      document.getElementById('selectedLabel').textContent = label;
+      for (let i = 1; i <= 20; i++) {
+        const btn = document.getElementById(`btn-${i}`);
+        if (btn) btn.classList.remove('btn-selected');
+      }
+      const activeBtn = document.getElementById(`btn-${val}`);
+      if (activeBtn) activeBtn.classList.add('btn-selected');
+
+      const stdGrid = document.getElementById('standardAmountGrid');
+      const invGrid = document.getElementById('investmentGrid');
+      const rechGrid = document.getElementById('rechargeGrid');
+      const bankPersonGrid = document.getElementById('bankPersonGrid');
+      const loanGrid = document.getElementById('loanGrid');
+      const homeExpenseGrid = document.getElementById('homeExpenseGrid');
+      const instInstallmentGrid = document.getElementById('instInstallmentGrid');
+      const serviceDiv = document.getElementById('serviceDiv');
+      const commBoxWrapper = document.getElementById('commBoxWrapper');
+      const loanSourceDiv = document.getElementById('loanSourceDiv');
+
+      stdGrid.classList.remove('hidden');
+      invGrid.classList.add('hidden');
+      rechGrid.classList.add('hidden');
+      bankPersonGrid.classList.add('hidden');
+      loanGrid.classList.add('hidden');
+      homeExpenseGrid.classList.add('hidden');
+      instInstallmentGrid.classList.add('hidden');
+      serviceDiv.classList.remove('hidden');
+      commBoxWrapper.classList.remove('hidden');
+      if(loanSourceDiv) loanSourceDiv.classList.remove('hidden');
+
+      if (val === '4') {
+        instInstallmentGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+      } else if (val === '3') {
+        rechGrid.classList.remove('hidden');
+      } else if (val === '7') {
+        invGrid.classList.remove('hidden');
+        stdGrid.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+      } else if (val === '8' || val === '9') {
+        bankPersonGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+      } else if (val === '10') {
+        loanGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        document.getElementById('loanLabel').textContent = 'ব্যক্তির নাম (যাকে ধার দিলেন)';
+        document.getElementById('loanSourceLabel').textContent = 'উৎস খাত (কোথা থেকে টাকা দিলেন)';
+      } else if (val === '11') {
+        loanGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        loanSourceDiv.classList.add('hidden');
+        document.getElementById('loanLabel').textContent = 'ব্যক্তির নাম (যিনি ধার ফেরত দিলেন; টাকা নগদ ক্যাশ বক্সে যোগ হবে)';
+      } else if (val === '18') {
+        loanGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        loanSourceDiv.classList.remove('hidden');
+        document.getElementById('loanLabel').textContent = 'গ্রাহক/ব্যক্তির নাম (যাকে হাওলাঁদ দিলেন)';
+        document.getElementById('loanSourceLabel').textContent = 'উৎস খাত (কোথা থেকে হাওলাঁদ দিলেন)';
+      } else if (val === '19') {
+        loanGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        loanSourceDiv.classList.add('hidden');
+        document.getElementById('loanLabel').textContent = 'গ্রাহক/ব্যক্তির নাম (যিনি হাওলাঁদ ফেরত দিলেন; টাকা নগদ ক্যাশ বক্সে জমা হবে)';
+      } else if (val === '15') {
+        loanGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        document.getElementById('loanLabel').textContent = 'ব্যক্তির নাম (যার থেকে ব্যক্তিগত ধার নিলেন)';
+        document.getElementById('loanSourceLabel').textContent = 'গন্তব্য খাত (টাকা কোথায় জমা হলো)';
+      } else if (val === '17') { 
+        loanGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        document.getElementById('loanLabel').textContent = 'ব্যাংক/এনজিও এর নাম (যেখান থেকে লোন নিলেন)';
+        document.getElementById('loanSourceLabel').textContent = 'লোনের টাকা কোথায় জমা হলো (গন্তব্য খাত)';
+      } else if (val === '16') {
+        const box = document.getElementById('homeBudgetCard');
+        if (box) box.scrollIntoView({ behavior: 'smooth' });
+      } else if (val === '13' || val === '20') {
+        homeExpenseGrid.classList.remove('hidden');
+        commBoxWrapper.classList.add('hidden');
+        serviceDiv.classList.add('hidden');
+        const pInput = document.getElementById('purchaseItem');
+        const labelEl = document.getElementById('purchaseItemLabel');
+        const dropdown = document.getElementById('quickSelectDropdown');
+        const chipsContainer = document.getElementById('quickChipsContainer');
+
+        let items = [];
+        if (val === '20') {
+          labelEl.textContent = '👦 আনাসের খরচের বিবরণ (বাটন বা তালিকা থেকে নিন)';
+          pInput.placeholder = 'যেমন: টিফিনের খরচ, টিউশন ফি...';
+          items = ['টিফিনের খরচ', 'টিউশন ফি', 'যাতায়াত ভাড়া', 'স্কুল ফি', 'খাতা কলম ক্রয়', 'প্রাইভেট ফি', 'টিফিন ও নাস্তা'];
+        } else {
+          labelEl.textContent = '🏠 সংসারের খরচের বিবরণ (বাটন বা তালিকা থেকে নিন)';
+          pInput.placeholder = 'যেমন: গ্যাস ক্রয়, বিদ্যুৎ বিল, বাজার...';
+          items = ['গ্যাস ক্রয়', 'বিদ্যুৎ বিল', 'দৈনন্দিন বাজার', 'মাছ মাংস ক্রয়', 'মুদি বাজার', 'আনুষঙ্গিক বাজার', 'সবজি ও ফলমূল', 'ঘরের প্রয়োজনীয় সামগ্রী'];
+        }
+
+        dropdown.innerHTML = '<option value="">📌 তালিকা থেকে বাছুন</option>' + items.map(i => `<option value="${i}">${i}</option>`).join('');
+        chipsContainer.innerHTML = items.map(i => `<button type="button" onclick="setPurchaseItem('${i}')" class="bg-orange-100 hover:bg-orange-200 text-orange-900 text-xs font-bold px-2.5 py-1 rounded-full border border-orange-300">✓ ${i}</button>`).join('');
+      } else if (val === '12' || val === '14') {
+        commBoxWrapper.classList.add('hidden');
+      }
+
+      if (!document.getElementById('editingTxId').value) {
+        autoFillPreviousData(val);
+      }
+      const txForm = document.getElementById('txForm');
+      if (txForm) txForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function autoFillPreviousData(txType) {
+      const prev = state.history.find(h => h.txType === txType);
+      if (!prev) return;
+
+      if (prev.amount) document.getElementById('mainAmount').value = prev.amount;
+      if (prev.comm) document.getElementById('commAmount').value = prev.comm;
+      if (prev.note && prev.note !== '-') document.getElementById('note').value = prev.note;
+
+      if (txType === '4') {
+        if (prev.instNameInput) document.getElementById('instNameInput').value = prev.instNameInput;
+        if (prev.installmentFreq) document.getElementById('installmentFreq').value = prev.installmentFreq;
+      } else if (txType === '3') {
+        if (prev.operator) document.getElementById('operatorName').value = prev.operator;
+        if (prev.number) document.getElementById('rechargeNumber').value = prev.number;
+      } else if (txType === '8' || txType === '9') {
+        if (prev.personName && prev.personName !== 'অজ্ঞাত') document.getElementById('personName').value = prev.personName;
+      } else if (['10', '11', '15', '17', '18', '19'].includes(txType)) {
+        if (prev.loanPersonName && prev.loanPersonName !== 'অজ্ঞাত') document.getElementById('loanPersonName').value = prev.loanPersonName;
+        if (prev.loanSource) document.getElementById('loanSource').value = prev.loanSource;
+      } else if (['13', '20'].includes(txType)) {
+        if (prev.purchaseItem) document.getElementById('purchaseItem').value = prev.purchaseItem;
+      }
+    }
+
+    function setPurchaseItem(val) {
+      document.getElementById('purchaseItem').value = val;
+      document.getElementById('quickSelectDropdown').value = '';
+    }
+
+    function applyQuickSelect(val) {
+      if (val) {
+        document.getElementById('purchaseItem').value = val;
+      }
+    }
+
+    
+    // Automatically play voice notification on successful transaction
+    function playSuccessSound() {
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance("Success");
+          utterance.lang = 'en-US';
+          utterance.rate = 1.0;
+          window.speechSynthesis.speak(utterance);
+        }
+        const audio = new Audio('success.mp3');
+        audio.play().catch(function(e){});
+      } catch(e) {}
+    }
+
+    function submitTransaction(e) {
+      e.preventDefault();
+      const editingId = document.getElementById('editingTxId').value;
+      const service = document.getElementById('mfsService').value;
+      const txType = document.getElementById('selectedTxType').value;
+      const note = document.getElementById('note').value || '-';
+      const dateVal = document.getElementById('txDate').value || new Date().toISOString().split('T')[0];
+
+      let mainAmt = 0;
+      let commAmt = 0;
+      let investAmt = 0;
+      let profitAmt = 0;
+      let operator = '';
+      let number = '';
+      let investorName = '';
+      let personName = '';
+      let loanPersonName = '';
+      let loanSource = 'none';
+      let purchaseItem = '';
+      let installmentFreq = 'weekly';
+      let instNameInput = '';
+
+      if (txType === '4') {
+        instNameInput = document.getElementById('instNameInput').value.trim() || 'অন্যান্য ব্যাংক/এনজিও';
+        installmentFreq = document.getElementById('installmentFreq').value;
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+      } else if (txType === '3') {
+        operator = document.getElementById('operatorName').value;
+        number = document.getElementById('rechargeNumber').value;
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+        commAmt = parseFloat(document.getElementById('commAmount').value) || 0;
+      } else if (txType === '7') {
+        investorName = document.getElementById('investorName').value.trim() || 'নাম উল্লেখ নেই';
+        investAmt = parseFloat(document.getElementById('investAmount').value) || 0;
+        profitAmt = parseFloat(document.getElementById('profitAmount').value) || 0;
+        mainAmt = investAmt;
+        commAmt = profitAmt;
+      } else if (txType === '8' || txType === '9') {
+        personName = document.getElementById('personName').value || 'অজ্ঞাত';
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+      } else if (['10', '11', '15', '17'].includes(txType)) {
+        loanPersonName = document.getElementById('loanPersonName').value || 'অজ্ঞাত';
+        loanSource = txType === '11' ? 'cash' : document.getElementById('loanSource').value;
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+      } else if (['18', '19'].includes(txType)) {
+        loanPersonName = document.getElementById('loanPersonName').value || 'অজ্ঞাত';
+        // হাওলাঁদ দেওয়ার সময় নির্বাচিত উৎস খাত থেকে টাকা কমবে; ফেরত সবসময় হাতে নগদে যোগ হবে।
+        loanSource = txType === '18' ? document.getElementById('loanSource').value : 'cash';
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+      } else if (['13', '20'].includes(txType)) {
+        purchaseItem = document.getElementById('purchaseItem').value || (txType === '20' ? 'আনাসের খরচ' : 'সংসার খরচ');
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+      } else {
+        mainAmt = parseFloat(document.getElementById('mainAmount').value) || 0;
+        commAmt = parseFloat(document.getElementById('commAmount').value) || 0;
+      }
+
+      if (editingId) {
+        deleteTransactionLogic(editingId, false);
+      }
+
+      applyTransactionLogic(service, txType, mainAmt, commAmt, investAmt, profitAmt, loanSource, installmentFreq);
+
+      const record = {
+        id: editingId ? parseInt(editingId) : Date.now(),
+        service: service,
+        txType: txType,
+        type: typeLabels[txType],
+        amount: mainAmt,
+        comm: commAmt,
+        investAmt: investAmt,
+        profitAmt: profitAmt,
+        operator: operator,
+        number: number,
+        investorName: investorName,
+        personName: personName,
+        loanPersonName: loanPersonName,
+        loanSource: loanSource,
+        purchaseItem: purchaseItem,
+        installmentFreq: installmentFreq,
+        instNameInput: instNameInput,
+        note: note,
+        date: dateVal,
+        time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      if (editingId) {
+        const idx = state.history.findIndex(h => h.id == editingId);
+        if (idx !== -1) state.history[idx] = record;
+      } else {
+        state.history.unshift(record);
+      }
+
+      cancelEdit();
+      saveState();
+      playSuccessSound();
+      // Speak only after a transaction has been posted and saved.
+      speakTransactionCompleted();
+    }
+
+    function speakTransactionCompleted() {
+      try {
+        if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) return;
+        const synth = window.speechSynthesis;
+        synth.cancel();
+
+        const speakBengali = () => {
+          try {
+            const message = new SpeechSynthesisUtterance('The transaction is complete.');
+            message.lang = 'en-US';
+            message.rate = 0.95;
+            message.pitch = 1;
+            const voices = synth.getVoices ? synth.getVoices() : [];
+            const englishVoice = voices.find(v => /^en([_-]|$)/i.test(v.lang || ''));
+            if (englishVoice) message.voice = englishVoice;
+            synth.speak(message);
+          } catch (err) {
+            console.warn('Transaction completion voice unavailable:', err);
+          }
+        };
+
+        // Android WebView may load its speech voices asynchronously.
+        const voices = synth.getVoices ? synth.getVoices() : [];
+        if (voices.length) {
+          speakBengali();
+        } else {
+          let finished = false;
+          const onVoicesChanged = () => {
+            if (finished) return;
+            finished = true;
+            if (synth.removeEventListener) synth.removeEventListener('voiceschanged', onVoicesChanged);
+            speakBengali();
+          };
+          if (synth.addEventListener) synth.addEventListener('voiceschanged', onVoicesChanged, { once: true });
+          // Fallback for WebViews that do not fire voiceschanged.
+          setTimeout(() => {
+            if (finished) return;
+            finished = true;
+            if (synth.removeEventListener) synth.removeEventListener('voiceschanged', onVoicesChanged);
+            speakBengali();
+          }, 700);
+        }
+      } catch (err) {
+        // Voice announcement is optional; it must never interrupt transaction posting.
+        console.warn('Transaction voice announcement unavailable:', err);
+      }
+    }
+
+    function applyTransactionLogic(service, txType, mainAmt, commAmt, investAmt, profitAmt, loanSource, installmentFreq) {
+      if (txType === '1') {
+        // নির্দিষ্ট নিয়ম: ক্যাশ ইন হলে শুধু নির্বাচিত MFS ব্যালেন্স বাড়বে। হাতে নগদ অপরিবর্তিত থাকবে।
+        const amount = Math.abs(Number(mainAmt) || 0);
+        if (service in state && service !== 'cash') state[service] = (Number(state[service]) || 0) + amount;
+      } else if (txType === '2') {
+        // ক্যাশ আউট: নির্বাচিত MFS কমবে এবং হাতে নগদ মূল টাকা + কমিশন বাড়বে।
+        const amount = Math.abs(Number(mainAmt) || 0);
+        const commission = Math.abs(Number(commAmt) || 0);
+        if (service in state && service !== 'cash') state[service] = (Number(state[service]) || 0) - amount;
+        state.cash = (Number(state.cash) || 0) + amount + commission;
+        state.totalProfit = (Number(state.totalProfit) || 0) + commission;
+      } else if (txType === '3') {
+        if(service in state) state[service] -= mainAmt;
+        state.cash += commAmt;
+        state.totalProfit += commAmt;
+      } else if (txType === '4') {
+        if(service in state) state[service] -= mainAmt;
+        state.instLoanPaid = (state.instLoanPaid || 0) + mainAmt;
+        if (installmentFreq === 'weekly') {
+          state.instWeeklyPaid = (state.instWeeklyPaid || 0) + mainAmt;
+        } else {
+          state.instMonthlyPaid = (state.instMonthlyPaid || 0) + mainAmt;
+        }
+      } else if (txType === '5') {
+        state.bank -= mainAmt;
+        if(service !== 'bank' && service in state) state[service] += mainAmt;
+      } else if (txType === '6') {
+        if(service !== 'bank' && service in state) state[service] -= mainAmt;
+        state.bank += mainAmt;
+      } else if (txType === '7') {
+        state.investTotal += mainAmt;
+        state.investProfit += commAmt;
+      } else if (txType === '8') {
+        if(service === 'cash') state.cash -= mainAmt;
+        else if(service in state) state[service] -= mainAmt;
+        state.bank += mainAmt;
+        state.bankDepositTotal += mainAmt;
+      } else if (txType === '9') {
+        state.bank -= mainAmt;
+        if(service === 'cash') state.cash += mainAmt;
+        else if(service in state) state[service] += mainAmt;
+        state.bankWithdrawTotal += mainAmt;
+      } else if (txType === '10') { 
+        state.loanGivenTotal = (state.loanGivenTotal || 0) + mainAmt;
+        if (loanSource === 'budget') {
+          state.homeBudgetBal = (state.homeBudgetBal || 0) - mainAmt;
+          state.homeExpenseTotal = (state.homeExpenseTotal || 0) + mainAmt;
+        } else if (loanSource === 'cash') {
+          state.cash -= mainAmt;
+        } else if (loanSource in state && loanSource !== 'none') {
+          state[loanSource] -= mainAmt;
+        }
+      } else if (txType === '11') { 
+        state.loanGivenRec = (state.loanGivenRec || 0) + mainAmt;
+        // দেওয়া ধার ফেরত হাতে নগদে জমা হয়; আগের উৎস MFS-এ ফেরত যোগ হবে না।
+        state.cash += mainAmt;
+      } else if (txType === '18') {
+        state.hawladGivenTotal = (state.hawladGivenTotal || 0) + mainAmt;
+        if (loanSource === 'cash') state.cash -= mainAmt;
+        else if (loanSource in state && loanSource !== 'none') state[loanSource] -= mainAmt;
+      } else if (txType === '19') {
+        state.hawladRecTotal = (state.hawladRecTotal || 0) + mainAmt;
+        state.cash += mainAmt;
+      } else if (txType === '15') { 
+        state.loanTakenTotal = (state.loanTakenTotal || 0) + mainAmt;
+        if (loanSource === 'budget') {
+          state.homeBudgetBal = (state.homeBudgetBal || 0) + mainAmt;
+        } else if (loanSource === 'cash') {
+          state.cash += mainAmt;
+        } else if (loanSource in state && loanSource !== 'none') {
+          state[loanSource] += mainAmt;
+        }
+      } else if (txType === '17') { 
+        state.instLoanTotal = (state.instLoanTotal || 0) + mainAmt;
+        if (loanSource === 'budget') {
+          state.homeBudgetBal = (state.homeBudgetBal || 0) + mainAmt;
+        } else if (loanSource === 'cash') {
+          state.cash += mainAmt;
+        } else if (loanSource in state && loanSource !== 'none') {
+          state[loanSource] += mainAmt;
+        }
+      } else if (txType === '12') {
+        state.shopExpense += mainAmt;
+        state.cash -= mainAmt;
+      } else if (txType === '13') {
+        state.homeExpenseTotal = (state.homeExpenseTotal || 0) + mainAmt;
+        state.homeBudgetBal = (state.homeBudgetBal || 0) - mainAmt;
+      } else if (txType === '20') {
+        state.anasExpenseTotal = (state.anasExpenseTotal || 0) + mainAmt;
+        state.homeExpenseTotal = (state.homeExpenseTotal || 0) + mainAmt;
+        state.homeBudgetBal = (state.homeBudgetBal || 0) - mainAmt;
+      } else if (txType === '14') {
+        if(service in state) state[service] -= mainAmt;
+        state.cash += commAmt;
+        state.electricityExpense += mainAmt;
+        state.totalProfit += commAmt;
+      }
+    }
+
+    function deleteTransactionLogic(id, doRender = true) {
+      const item = state.history.find(h => h.id == id);
+      if (!item) return;
+
+      const service = item.service;
+      const txType = item.txType;
+      const mainAmt = Number(item.amount) || 0;
+      const commAmt = Number(item.comm) || 0;
+      const loanSource = item.loanSource;
+      const installmentFreq = item.installmentFreq;
+
+      // Reverse the exact balance changes made when this transaction was added.
+      if (txType === '1') {
+        // ক্যাশ ইন এন্ট্রি মুছলে শুধু নির্বাচিত MFS ব্যালেন্স কমবে; হাতে নগদ অপরিবর্তিত থাকবে।
+        const amount = Math.abs(Number(mainAmt) || 0);
+        if (service in state && service !== 'cash') state[service] = (Number(state[service]) || 0) - amount;
+      } else if (txType === '2') {
+        // ক্যাশ আউট মুছলে MFS-এ টাকা ফেরত এবং হাতে নগদ আগের অবস্থায় ফেরত।
+        const amount = Math.abs(Number(mainAmt) || 0);
+        const commission = Math.abs(Number(commAmt) || 0);
+        if (service in state && service !== 'cash') state[service] = (Number(state[service]) || 0) + amount;
+        state.cash = (Number(state.cash) || 0) - amount - commission;
+        state.totalProfit = (Number(state.totalProfit) || 0) - commission;
+      } else if (txType === '3') {
+        if (service in state) state[service] += mainAmt;
+        state.cash -= commAmt;
+        state.totalProfit -= commAmt;
+      } else if (txType === '4') {
+        if (service in state) state[service] += mainAmt;
+        state.instLoanPaid = (state.instLoanPaid || 0) - mainAmt;
+        if (installmentFreq === 'weekly') state.instWeeklyPaid = (state.instWeeklyPaid || 0) - mainAmt;
+        else state.instMonthlyPaid = (state.instMonthlyPaid || 0) - mainAmt;
+      } else if (txType === '5') {
+        state.bank += mainAmt;
+        if (service !== 'bank' && service in state) state[service] -= mainAmt;
+      } else if (txType === '6') {
+        if (service !== 'bank' && service in state) state[service] += mainAmt;
+        state.bank -= mainAmt;
+      } else if (txType === '7') {
+        state.investTotal -= mainAmt;
+        state.investProfit -= commAmt;
+      } else if (txType === '8') {
+        if (service === 'cash') state.cash += mainAmt;
+        else if (service in state) state[service] += mainAmt;
+        state.bank -= mainAmt;
+        state.bankDepositTotal = (state.bankDepositTotal || 0) - mainAmt;
+      } else if (txType === '9') {
+        state.bank += mainAmt;
+        if (service === 'cash') state.cash -= mainAmt;
+        else if (service in state) state[service] -= mainAmt;
+        state.bankWithdrawTotal = (state.bankWithdrawTotal || 0) - mainAmt;
+      } else if (txType === '10') {
+        state.loanGivenTotal = (state.loanGivenTotal || 0) - mainAmt;
+        if (loanSource === 'budget') {
+          state.homeBudgetBal = (state.homeBudgetBal || 0) + mainAmt;
+          state.homeExpenseTotal = (state.homeExpenseTotal || 0) - mainAmt;
+        } else if (loanSource === 'cash') {
+          state.cash += mainAmt;
+        } else if (loanSource in state && loanSource !== 'none') {
+          state[loanSource] += mainAmt;
+        }
+      } else if (txType === '11') {
+        state.loanGivenRec = (state.loanGivenRec || 0) - mainAmt;
+        state.cash -= mainAmt;
+      } else if (txType === '12') {
+        state.shopExpense = (state.shopExpense || 0) - mainAmt;
+        state.cash += mainAmt;
+      } else if (txType === '13') {
+        state.homeExpenseTotal = (state.homeExpenseTotal || 0) - mainAmt;
+        state.homeBudgetBal = (state.homeBudgetBal || 0) + mainAmt;
+      } else if (txType === '14') {
+        if (service in state) state[service] += mainAmt;
+        state.cash -= commAmt;
+        state.electricityExpense = (state.electricityExpense || 0) - mainAmt;
+        state.totalProfit -= commAmt;
+      } else if (txType === '15') {
+        state.loanTakenTotal = (state.loanTakenTotal || 0) - mainAmt;
+        if (loanSource === 'budget') state.homeBudgetBal = (state.homeBudgetBal || 0) - mainAmt;
+        else if (loanSource === 'cash') state.cash -= mainAmt;
+        else if (loanSource in state && loanSource !== 'none') state[loanSource] -= mainAmt;
+      } else if (txType === '17') {
+        state.instLoanTotal = (state.instLoanTotal || 0) - mainAmt;
+        if (loanSource === 'budget') state.homeBudgetBal = (state.homeBudgetBal || 0) - mainAmt;
+        else if (loanSource === 'cash') state.cash -= mainAmt;
+        else if (loanSource in state && loanSource !== 'none') state[loanSource] -= mainAmt;
+      } else if (txType === '18') {
+        state.hawladGivenTotal = (state.hawladGivenTotal || 0) - mainAmt;
+        if (loanSource === 'cash') state.cash += mainAmt;
+        else if (loanSource in state && loanSource !== 'none') state[loanSource] += mainAmt;
+      } else if (txType === '19') {
+        state.hawladRecTotal = (state.hawladRecTotal || 0) - mainAmt;
+        state.cash -= mainAmt;
+      } else if (txType === '20') {
+        state.anasExpenseTotal = (state.anasExpenseTotal || 0) - mainAmt;
+        state.homeExpenseTotal = (state.homeExpenseTotal || 0) - mainAmt;
+        state.homeBudgetBal = (state.homeBudgetBal || 0) + mainAmt;
+      }
+
+      if (doRender) {
+        state.history = state.history.filter(h => h.id != id);
+        saveState();
+        render();
+      }
+    }
+
+    function deleteEntry(id) {
+      if (confirm('আপনি কি এই লেনদেনটি মুছে ফেলতে চান?')) {
+        deleteTransactionLogic(id, true);
+      }
+    }
+
+    function editEntry(id) {
+      const item = state.history.find(h => h.id == id);
+      if (!item) return;
+
+      document.getElementById('editingTxId').value = item.id;
+      document.getElementById('mfsService').value = item.service;
+      document.getElementById('note').value = item.note;
+      document.getElementById('txDate').value = item.date || new Date().toISOString().split('T')[0];
+
+      selectTxType(item.txType, `${item.txType}. ${typeLabels[item.txType]}`);
+
+      if (item.txType === '4') {
+        document.getElementById('installmentFreq').value = item.installmentFreq || 'weekly';
+        document.getElementById('instNameInput').value = item.instNameInput || '';
+        document.getElementById('mainAmount').value = item.amount;
+      } else if (item.txType === '3') {
+        document.getElementById('operatorName').value = item.operator || 'Grameenphone';
+        document.getElementById('rechargeNumber').value = item.number || '';
+        document.getElementById('mainAmount').value = item.amount;
+        document.getElementById('commAmount').value = item.comm;
+      } else if (item.txType === '7') {
+        document.getElementById('mainAmount').value = item.amount;
+        document.getElementById('commAmount').value = item.comm;
+      } else if (item.txType === '8' || item.txType === '9') {
+        document.getElementById('personName').value = item.personName || '';
+        document.getElementById('mainAmount').value = item.amount;
+      } else if (['10', '11', '15', '17'].includes(item.txType)) {
+        document.getElementById('loanPersonName').value = item.loanPersonName || '';
+        document.getElementById('loanSource').value = item.loanSource || 'none';
+        document.getElementById('mainAmount').value = item.amount;
+      } else if (['18', '19'].includes(item.txType)) {
+        document.getElementById('loanPersonName').value = item.loanPersonName || '';
+        document.getElementById('loanSource').value = item.loanSource || 'cash';
+        document.getElementById('mainAmount').value = item.amount;
+      } else if (['13', '20'].includes(item.txType)) {
+        document.getElementById('purchaseItem').value = item.purchaseItem || '';
+        document.getElementById('mainAmount').value = item.amount;
+      } else {
+        document.getElementById('mainAmount').value = item.amount;
+        document.getElementById('commAmount').value = item.comm;
+      }
+
+      document.getElementById('formTitle').textContent = '✏️ লেনদেন এডিট করা হচ্ছে';
+      document.getElementById('submitBtn').textContent = '🔄 আপডেট করুন';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+      window.scrollTo({ top: document.getElementById('txForm').offsetTop - 100, behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+      document.getElementById('editingTxId').value = '';
+      document.getElementById('txForm').reset();
+      document.getElementById('formTitle').textContent = 'নতুন লেনদেনের তথ্য ও পরিমাণ';
+      document.getElementById('submitBtn').textContent = '💾 লেনদেন সংরক্ষণ করুন';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+      setDateToday();
+      selectTxType('1', '১. ক্যাশ ইন');
+    }
+
+    function updateSuggestions() {
+      const loanPersons = new Set();
+      const persons = new Set();
+      const instNames = new Set();
+      const purchaseItems = new Set();
+      const notes = new Set();
+
+      state.history.forEach(item => {
+        if (item.loanPersonName && item.loanPersonName !== 'অজ্ঞাত') loanPersons.add(item.loanPersonName);
+        if (item.personName && item.personName !== 'অজ্ঞাত') persons.add(item.personName);
+        if (item.instNameInput) instNames.add(item.instNameInput);
+        if (item.purchaseItem) purchaseItems.add(item.purchaseItem);
+        if (item.note && item.note !== '-') notes.add(item.note);
+      });
+
+      document.getElementById('loanPersonList').innerHTML = Array.from(loanPersons).map(v => `<option value="${v}">`).join('');
+      document.getElementById('personList').innerHTML = Array.from(persons).map(v => `<option value="${v}">`).join('');
+      document.getElementById('noteList').innerHTML = Array.from(notes).map(v => `<option value="${v}">`).join('');
+    }
+
+    function loanSourceLabel(source) {
+      const labels = { cash: 'হাতে নগদ', bkash: 'বিকাশ MFS', nagad: 'নগদ MFS', rocket: 'রকেট MFS', upay: 'উপায় MFS', bank: 'ব্যক্তিগত ব্যাংক হিসাব', budget: 'সংসারের বাজেট তহবিল', none: 'শুধুমাত্র ঋণ বক্স' };
+      return labels[source] || source || 'উৎস উল্লেখ নেই';
+    }
+
+    function render() {
+      updateSuggestions();
+      const totalMfs = state.bkash + state.nagad + state.rocket + state.upay;
+      const netProfit = state.totalProfit - state.shopExpense;
+
+      const personalNetLoan = (state.loanGivenTotal || 0) - (state.loanGivenRec || 0) - ((state.loanTakenTotal || 0) - (state.loanTakenPaid || 0));
+      const hawladRem = (state.hawladGivenTotal || 0) - (state.hawladRecTotal || 0);
+      const instLoanRem = (state.instLoanTotal || 0) - (state.instLoanPaid || 0);
+
+      document.getElementById('liveCapital').textContent = `৳ ${state.cash.toLocaleString('bn-BD')}`;
+      document.getElementById('cashInHandSub').textContent = `৳ ${state.cash.toLocaleString('bn-BD')}`;
+      document.getElementById('totalMfsBalanceSub').textContent = `৳ ${totalMfs.toLocaleString('bn-BD')}`;
+
+      document.getElementById('bkashBal').textContent = `৳ ${state.bkash.toLocaleString('bn-BD')}`;
+      document.getElementById('nagadBal').textContent = `৳ ${state.nagad.toLocaleString('bn-BD')}`;
+      document.getElementById('rocketBal').textContent = `৳ ${state.rocket.toLocaleString('bn-BD')}`;
+      document.getElementById('upayBal').textContent = `৳ ${state.upay.toLocaleString('bn-BD')}`;
+      document.getElementById('bankBal').textContent = `৳ ${state.bank.toLocaleString('bn-BD')}`;
+
+      document.getElementById('loanGivenBal').textContent = `৳ ${((state.loanGivenTotal || 0) - (state.loanGivenRec || 0)).toLocaleString('bn-BD')}`;
+      document.getElementById('loanTakenTotal').textContent = `৳ ${(state.loanTakenTotal || 0).toLocaleString('bn-BD')}`;
+
+      document.getElementById('hawladBal').textContent = `৳ ${hawladRem.toLocaleString('bn-BD')}`;
+      document.getElementById('hawladGivenTotal').textContent = `৳ ${(state.hawladGivenTotal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('hawladRecTotal').textContent = `৳ ${(state.hawladRecTotal || 0).toLocaleString('bn-BD')}`;
+
+      document.getElementById('instLoanPaidBox').textContent = `৳ ${(state.instLoanPaid || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('instLoanBal').textContent = `৳ ${instLoanRem.toLocaleString('bn-BD')}`;
+      document.getElementById('instLoanTotal').textContent = `৳ ${(state.instLoanTotal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('instWeeklyPaid').textContent = `৳ ${(state.instWeeklyPaid || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('instMonthlyPaid').textContent = `৳ ${(state.instMonthlyPaid || 0).toLocaleString('bn-BD')}`;
+
+      const instTotals = {};
+      state.history.forEach(item => {
+        if (item.txType === '4') {
+          const instName = item.instNameInput || 'অন্যান্য ব্যাংক/এনজিও';
+          if (!instTotals[instName]) {
+            instTotals[instName] = { total: 0, weekly: 0, monthly: 0 };
+          }
+          instTotals[instName].total += item.amount;
+          if (item.installmentFreq === 'weekly') {
+            instTotals[instName].weekly += item.amount;
+          } else {
+            instTotals[instName].monthly += item.amount;
+          }
+        }
+      });
+
+      const instContainer = document.getElementById('instBreakdownContainer');
+      const instKeys = Object.keys(instTotals);
+      document.getElementById('instListCount').textContent = `${instKeys.length} টি প্রতিষ্ঠান`;
+
+      if (instKeys.length === 0) {
+        instContainer.innerHTML = `<p class="text-center text-slate-400 py-2">এখনো কোনো ব্যাংক বা এনজিওতে কিস্তি পরিশোধ করা হয়নি</p>`;
+      } else {
+        instContainer.innerHTML = instKeys.map(name => `
+          <div class="p-2 bg-slate-50 border rounded-lg flex justify-between items-center">
+            <div>
+              <p class="font-bold text-slate-800 text-xs">🏦 ${name}</p>
+              <p class="text-[10px] text-slate-500">
+                সাপ্তাহিক: ৳ ${instTotals[name].weekly.toLocaleString('bn-BD')} | 
+                মাসিক: ৳ ${instTotals[name].monthly.toLocaleString('bn-BD')}
+              </p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold text-emerald-700">৳ ${instTotals[name].total.toLocaleString('bn-BD')}</span>
+              <p class="text-[9px] text-slate-400">মোট পরিশোধিত</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('homeBudgetBal').textContent = `৳ ${(state.homeBudgetBal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('homeBudgetTotal').textContent = `৳ ${(state.homeBudgetTotal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('homeExpenseTotal').textContent = `৳ ${(state.homeExpenseTotal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('anasExpenseSub').textContent = `৳ ${(state.anasExpenseTotal || 0).toLocaleString('bn-BD')}`;
+      
+      document.getElementById('bankDepositTotal').textContent = `৳ ${(state.bankDepositTotal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('bankWithdrawTotal').textContent = `৳ ${(state.bankWithdrawTotal || 0).toLocaleString('bn-BD')}`;
+
+      document.getElementById('manualComm').textContent = `৳ ${state.manualComm.toLocaleString('bn-BD')}`;
+      document.getElementById('totalProfit').textContent = `৳ ${state.totalProfit.toLocaleString('bn-BD')}`;
+      document.getElementById('netProfit').textContent = `৳ ${netProfit.toLocaleString('bn-BD')}`;
+      // Derive investment totals from the active history so deleted entries never remain in the summary.
+      const investmentSummary = state.history.reduce((totals, item) => {
+        if (String(item.txType) === '7') {
+          totals.invested += Number(item.amount) || 0;
+          totals.profit += Number(item.comm) || 0;
+        }
+        return totals;
+      }, { invested: 0, profit: 0 });
+      state.investTotal = investmentSummary.invested;
+      state.investProfit = investmentSummary.profit;
+      document.getElementById('totalInvest').textContent = `৳ ${investmentSummary.invested.toLocaleString('bn-BD')}`;
+      document.getElementById('investProfit').textContent = `৳ ${investmentSummary.profit.toLocaleString('bn-BD')}`;
+      // Expense entries consume available dividend, but never alter the lifetime total received.
+      const dividendLedger = [...state.history].slice().reverse();
+      let dividendRemaining = 0;
+      for (const entry of dividendLedger) {
+        if (String(entry.txType) === '7') dividendRemaining += Number(entry.comm) || 0;
+        else if (['12','13','14','20','16'].includes(String(entry.txType))) dividendRemaining = Math.max(0, dividendRemaining - (Number(entry.amount) || 0));
+      }
+      document.getElementById('investProfitRemaining').textContent = `৳ ${dividendRemaining.toLocaleString('bn-BD')}`;
+      document.getElementById('netLoan').textContent = `৳ ${personalNetLoan.toLocaleString('bn-BD')}`;
+      document.getElementById('homeExpense').textContent = `৳ ${(state.homeExpenseTotal || 0).toLocaleString('bn-BD')}`;
+      document.getElementById('shopExpense').textContent = `৳ ${state.shopExpense.toLocaleString('bn-BD')}`;
+
+      const historyEl = document.getElementById('txHistory');
+      document.getElementById('historyCount').textContent = `${state.history.length} টি এন্ট্রি`;
+
+      if (state.history.length === 0) {
+        historyEl.innerHTML = `<p class="p-4 text-center text-slate-400 text-sm">এখনো কোনো এন্ট্রি যোগ করা হয়নি</p>`;
+        return;
+      }
+
+      historyEl.innerHTML = state.history.map(item => `
+        <div class="p-3 flex justify-between items-center hover:bg-slate-50">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-800 text-sm">${item.type}</span>
+              ${(!['7', '13', '10', '11', '15', '17', '18', '19'].includes(item.txType)) ? `<span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded font-bold">${item.service.toUpperCase()}</span>` : ''}
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              ${item.txType === '4' ? `প্রতিষ্ঠান: <strong>${item.instNameInput}</strong> (${item.installmentFreq === 'weekly' ? 'সাপ্তাহিক কিস্তি 📅' : 'মাসিক কিস্তি 🗓️'}) • মাধ্যম: <strong>${item.service.toUpperCase()}</strong> • ` : ''}
+              ${item.txType === '3' ? `অপারেটর: ${item.operator} (${item.number}) • ` : ''}
+              ${item.txType === '7' ? `বিনিয়োগকারী: ${item.investorName} • ` : ''}
+              ${item.txType === '8' || item.txType === '9' ? `ব্যক্তি: ${item.personName} • ` : ''}
+              ${['10', '11', '15', '17'].includes(item.txType) ? `ব্যক্তি/প্রতিষ্ঠান: <strong>${item.loanPersonName}</strong> • খাত: <strong>${(['11'].includes(item.txType) ? 'হাতে নগদে ফেরত' : loanSourceLabel(item.loanSource))}</strong> • ` : ''}
+              ${['18', '19'].includes(item.txType) ? `ব্যক্তি (হাওলাঁদ): <strong>${item.loanPersonName}</strong> • খাত: <strong>${item.txType === '19' ? 'হাতে নগদে ফেরত' : loanSourceLabel(item.loanSource)}</strong> • ` : ''}
+              ${item.txType === '13' ? `ক্রয়: ${item.purchaseItem} (বাজেট থেকে কর্তন) • ` : ''}
+              ${item.txType === '20' ? `আনাসের খরচ: ${item.purchaseItem} (বাজেট থেকে কর্তন) • ` : ''}
+              ${item.note} • ${item.date || ''} ${item.time}
+            </p>
+          </div>
+          <div class="text-right flex items-center gap-2.5">
+            <div>
+              ${item.txType === '7' ? `
+                <span class="font-bold text-purple-700 text-sm">বিনিয়োগ: ৳ ${item.amount}</span><br>
+                <span class="font-semibold text-emerald-600 text-xs">লভ্যাংশ: ৳ ${item.comm}</span>
+              ` : `
+                <span class="font-bold text-emerald-700 text-base">৳ ${item.amount}</span>
+                ${item.comm > 0 ? `<p class="text-xs text-emerald-600 font-semibold">+৳${item.comm} লাভ</p>` : ''}
+              `}
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <button onclick="editEntry(${item.id})" class="bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs px-2.5 py-1 rounded font-bold">✏️ এডিট</button>
+              <button onclick="deleteEntry(${item.id})" class="bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs px-2.5 py-1 rounded font-bold">🗑️ ডিলিট</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let calcVal = '0';
+    function toggleCalc() {
+      document.getElementById('calcModal').classList.toggle('hidden');
+    }
+    function calcInput(v) {
+      if(v === 'C') calcVal = '0';
+      else if(calcVal === '0') calcVal = v;
+      else calcVal += v;
+      document.getElementById('calcDisplay').value = calcVal;
+    }
+    function calcEqual() {
+      try {
+        calcVal = eval(calcVal).toString();
+        document.getElementById('calcDisplay').value = calcVal;
+      } catch(e) {
+        document.getElementById('calcDisplay').value = 'Error';
+        calcVal = '0';
+      }
+    }
+
+    initializeStorage();
+  </script>
+
+  <!-- Datalists for Auto-completion / Suggestions -->
+  <datalist id="loanPersonList"></datalist>
+  <datalist id="personList"></datalist>
+  <datalist id="noteList"></datalist>
+</body>
+</html>
